@@ -10,7 +10,6 @@
 #define FONT_4x6     1
 #define FONT_5x7     2
 #define FONT_5x8     3
-#define FONT_5x7W    4
 #define FONT_8x8    16
 
 #include "font.h"
@@ -55,6 +54,11 @@
 #define X_MAX 31
 #define Y_MAX 7
 
+void delay_ms(int d){
+     while (d--){ 
+       _delay_ms(1);
+    }
+}
 
 class LedMatrix_t{
 
@@ -110,35 +114,69 @@ class LedMatrix_t{
        
 
 
-        void hScrollText(int y, char *text, int delaytime, int times, uint8_t dir)
+        void hScrollText(int y, char *text, int delaytime, int times, uint8_t dir, uint8_t color = 1, uint8_t space = 0)
         {
-            int i, x, offs, len = strlen(text);
-            uint8_t width = font_width;
+            int i, x, offs = 0, len = strlen(text);
+            uint8_t width = font_width -1 + space;
             width++;
-
             while (times) {
                 for ((dir) ? x = - (len * width) : x = X_MAX; (dir) ? x <= X_MAX : x > - (len * width); (dir) ? x++ : x--)
                 {
+                    clearFb();            
                     for (i = 0; i < len; i++)
                     {
-                        offs = width * i;
                         (dir) ? offs-- : offs++;
-                        putChar(x + offs,  y, text[i]);
+                        offs = (width ) * i;
+                        putChar(x + offs,  y, text[i], color);
                     }
-                    for (i = 0; i < len; i++)
+/*                    for (i = 0; i < len; i++)
                     {
                         offs = width * i;
                         putChar(x + offs,  y, text[i]);
-                    }
+                    }*/
                     sendFrame();
-                    _delay_ms(delaytime);
+                    delay_ms(delaytime);
                 }
                 times--;
             }
         }
  
+        void vScrollText(int x, char *text, int delaytime, int times, uint8_t dir, uint8_t color = 1  ,uint8_t space = 0)
+        {
+            int i, y, voffs, len = strlen(text);
+            uint8_t offs;
+            uint8_t width = font_width;
+            width++;
+
+            while (times) {
+                for ((dir) ? y = - font_height : y = Y_MAX + 1; (dir) ? y <= Y_MAX + 1 : y > - font_height; (dir) ? y++ : y--)
+                {
+                    clearFb();
+                    for (i = 0; i < len; i++)
+                    {
+                        offs = ((width - 1) + space) * i;
+                        voffs = (dir) ? -1 : 1;                       
+                        putChar(x + offs,  y + voffs, text[i], color);
+                    }
+                    sendFrame();
+                    delay_ms(delaytime);
+                }
+                times--;
+            }
+        }
         
-        uint8_t putChar(int x, int y, char c)
+        void  printText(int x,int y, char *text, uint8_t space = 0, uint8_t color = 1){
+
+            uint8_t offs = 0;
+            int len = strlen(text);
+
+            for(int i = 0; i < len; i++){
+                putChar(x + offs,y,text[i],color);
+                offs += font_width - 1 + space;
+             } 
+        }      
+ 
+        uint8_t putChar(int x, int y, char c, uint8_t color = 1)
         {
             uint16_t dots, msb;
             char col, row;
@@ -162,9 +200,9 @@ class LedMatrix_t{
                 dots = pgm_read_byte_near(addr + col);
                 for (row = 0; row < height; row++) {
                     if (dots & (msb >> row)) {
-                        putPixel(x + col, (y + row), 1);
+                        putPixel(x + col, (y + row), color);
                     } else {
-                        putPixel(x + col, (y + row), 0);
+                        //putPixel(x + col, (y + row), 0);
                     }
                 }
             }
@@ -203,7 +241,7 @@ class LedMatrix_t{
                 case FONT_5x7W:
                     font = (uint8_t*) &font_5x7w[0];
                     font_width = 5;
-                    font_height = 8;
+                    font_height = 7;
                     break;
                #endif
 
@@ -217,6 +255,43 @@ class LedMatrix_t{
 
 
             }
+        }
+        
+        void line(int x0, int y0, int x1, int y1, uint8_t color = 1)
+        {
+            int dx =  abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+            int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+            int err = dx + dy, e2; /* error value e_xy */
+
+            for(;;) {
+                putPixel(x0, y0, color);
+                if (x0 == x1 && y0 == y1) break;
+                e2 = 2 * err;
+                if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
+                if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+            }
+        }
+
+        void rect(int x0, int y0, int x1, int y1, uint8_t color = 1)
+        {
+            line(x0, y0, x0, y1, color); /* left line   */
+            line(x1, y0, x1, y1, color); /* right line  */
+            line(x0, y0, x1, y0, color); /* top line    */
+            line(x0, y1, x1, y1, color); /* bottom line */
+        }
+
+        void circle(int xm, int ym, int r, uint8_t color = 1)
+        {
+            int x = -r, y = 0, err = 2 - 2 * r; /* II. Quadrant */
+            do {
+                putPixel(xm - x, ym + y, color); /*   I. Quadrant */
+                putPixel(xm - y, ym - x, color); /*  II. Quadrant */
+                putPixel(xm + x, ym - y, color); /* III. Quadrant */
+                putPixel(xm + y, ym + x, color); /*  IV. Quadrant */
+                r = err;
+                if (r >  x) err += ++x * 2 + 1; /* e_xy+e_x > 0 */
+                if (r <= y) err += ++y * 2 + 1; /* e_xy+e_y < 0 */
+            } while (x < 0);
         }
 
 
@@ -242,6 +317,8 @@ class LedMatrix_t{
             sendCMD(HT1632_CMD_PWM | val);
         }
 
+ 
+    
     private:
 
         inline void wrClock(){

@@ -15,6 +15,7 @@ AVRDUDE = sudo avrdude -c usbasp   -p $(DEVICE) # edit this line for your progra
 
 CFLAGS  = 
 OBJECTS = main.o
+DEPS = $(OBJECTS:.o=.d)
 
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(F_CPU) $(CFLAGS) -mmcu=$(DEVICE)
 
@@ -39,15 +40,17 @@ flash: main.hex
 
 # rule for deleting dependent files (those which can be built by Make):
 clean:
-	rm -f main.hex main.lst main.obj main.cof main.list main.map main.eep.hex main.elf *.o 
+	rm -f main.hex main.lst main.obj main.cof main.list main.map main.eep.hex main.elf *.o *.d 
 
 # Generic rule for compiling C files:
 .c.o:
 	$(COMPILE) -c $< -o $@
+	$(COMPILE) -MM $*.c > $*.d 
 
 .cc.o:
 	$(COMPILE) -c $< -o $@
-
+	$(COMPILE) -MM $*.cc > $*.d 
+    
 # Generic rule for assembling Assembler source files:
 .S.o:
 	$(COMPILE) -x assembler-with-cpp -c $< -o $@
@@ -78,3 +81,6 @@ disasm:	main.elf
 
 cpp:
 	$(COMPILE) -E main.c
+
+
+-include	$(DEPS)
