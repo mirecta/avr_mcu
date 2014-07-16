@@ -38,6 +38,9 @@ program: flash fuse
 flash: main.hex
 	$(AVRDUDE) -U flash:w:main.hex:i
 
+fuses:
+	$(AVRDUDE) -U lfuse:w:0x94:m -U hfuse:w:0xd9:m
+
 # rule for deleting dependent files (those which can be built by Make):
 clean:
 	rm -f main.hex main.lst main.obj main.cof main.list main.map main.eep.hex main.elf *.o *.d 
