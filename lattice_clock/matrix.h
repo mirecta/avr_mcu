@@ -7,8 +7,8 @@
 #ifndef LED_MATRIX_H 
 
 #define LED_MATRIX_H
-#define FONT_4x6     1
-#define FONT_5x7     2
+//#define FONT_4x6     1
+//#define FONT_5x7     2
 #define FONT_5x8     3
 #define FONT_8x8    16
 

@@ -14,7 +14,7 @@ FUSE_H  =
 AVRDUDE = sudo avrdude -c usbasp   -p $(DEVICE) # edit this line for your programmer
 
 CFLAGS  = 
-OBJECTS = main.o
+OBJECTS = main.o dht22.o
 DEPS = $(OBJECTS:.o=.d)
 
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(F_CPU) $(CFLAGS) -mmcu=$(DEVICE)
@@ -70,7 +70,7 @@ clean:
 
 
 main.elf:  $(OBJECTS)	# usbdrv dependency only needed because we copy it
-	$(COMPILE) -o main.elf $(OBJECTS)
+	$(COMPILE) -o main.elf $(OBJECTS) -lc
 
 main.hex: main.elf
 	rm -f main.hex main.eep.hex

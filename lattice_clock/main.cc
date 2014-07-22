@@ -1,14 +1,15 @@
 #include <util/delay.h>
-
-
+#include <stdarg.h>
+#include <stdio.h> 
 
 #include "matrix.h"
-
+#include "dht22.h"
 
 
 
 
 LedMatrix_t lm;
+DHT22 dht(PC2, PORTC, DDRC, PINC);
 
 /*
 
@@ -19,76 +20,60 @@ LedMatrix_t lm;
 
 */
 
+
+void print(int x, int y, char* fmt, ...){
+    char buf[128]; // resulting string limited to 128 chars
+    va_list args;
+    va_start (args, fmt );
+    vsnprintf(buf, 128, fmt, args);
+    va_end (args);
+    lm.printText(x,y,buf,1);
+}
+
+
 int main(){
 
 
 
     lm.clear();
-    lm.brightness(3);
-   // lm.setFont(FONT_5x7);
-//    lm.putChar(6,0,'A');
-//    lm.putPixel(0,0,1);
- //     lm.printText(0,0,"12:00");
- //     lm.updateFb();
-    //lm.hScrollText(0,"Hello world !!!", 25, 50, 0);
+    lm.brightness(8);
+    lm.setFont(FONT_5x8);
+    int i = 0;
+
     while(1){
 
-    lm.setFont(FONT_4x6);
-    lm.hScrollText(0,"Font 4x6", 25, 1, 0);
-    lm.setFont(FONT_5x7);
-    lm.hScrollText(0,"Font 5x7", 25, 1, 0);
-    lm.setFont(FONT_5x8);
-    lm.hScrollText(0,"Font 5x8", 25, 1, 0);
-    lm.setFont(FONT_8x8);
-    lm.hScrollText(0,"Font 8x8", 25, 1, 0);
+    dht.read_data();
+
+    if (i <= 25){
+    int t = dht.get_temperature_c_int();
+    
+    lm.clearFb();
+    print(0,0, " %02d",t/10);
+    lm.putChar(13,0, '.');
+    print(18,0, "%1dC",t%10);
+    lm.updateFb();
+    }
+    else{
+    int h = dht.get_humidity_int();
+    
+    lm.clearFb();
+    lm.printText(0,0,"Rh",1);
+    print(12,0, "%02d",h/10);
+    lm.putChar(20,0, '.');
+    print(25,0, "%1d",h%10);
+    lm.updateFb();
+    
+    
+    }
 
 
-     for(int i = 0; i <= 50 ; i++){
-        lm.clear();
-        //_delay_ms(20);
-        for (int i = 0; i < 50; i++){
-            int x = rand()%32;
-            int y = rand()%8;
-            lm.putPixel(x,y,1);
-        }
-        lm.updateFb();
-        _delay_ms(20);
-     }
+    if (i >= 35)
+        i = 0;
+
+    
+    
     delay_ms(200);
-    //lm.clear();
-    for (int i = 0; i < 32; i++){
-
-      lm.line(i,0,31-i,7);
-      lm.updateFb();
-      _delay_ms(30);
-   }
-    for (int i = 0; i < 8; i++){
-
-      lm.line(0,7-i,31,i);
-      lm.updateFb();
-      _delay_ms(40);
-   }
-    for (int i = 0; i < 32; i++){
-
-      lm.line(i,0,31-i,7,0);
-      lm.updateFb();
-      _delay_ms(30);
-   }
-    for (int i = 0; i < 8; i++){
-
-      lm.line(0,7-i,31,i,0);
-      lm.updateFb();
-      _delay_ms(40);
-   }
-
-   
-  for(int i = 0; i < 20; i++){
-     lm.clear();
-     lm.circle(15,3,i);
-     lm.updateFb();
-      _delay_ms(30);
-  }
-
+    i++;
 
 }
 
