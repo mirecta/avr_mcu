@@ -20,7 +20,7 @@ OBJ:= $(patsubst %.s,%.o,$(OBJ))
 OBJ:= $(patsubst %.o, build/%.o, $(notdir $(OBJ)))
 VPATH:=$(MODULES)
 
-CFLAGS :=  -Wall -Os -DCPU_FREQ=$(CPU_FREQ) -mmcu=$(DEVICE) 
+CFLAGS :=  -Wall -Os -DF_CPU=$(CPU_FREQ) -mmcu=$(DEVICE) 
 CFLAGS += $(addprefix -I ,$(INCLUDES))
 LDFLAGS :=     -D$(DEVICE) -mmcu=$(DEVICE)
 
