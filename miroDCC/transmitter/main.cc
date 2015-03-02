@@ -18,10 +18,10 @@ ISR(TIMER0_OVF_vect ){
 
 if (counter == 10){
     counter = 0;
-    if(PORTB & (1 << PB5))
-        PORTB &= ~(1 << PB5);
+    if(PORTB & (1 << PB7))
+        PORTB &= ~(1 << PB7);
     else
-        PORTB |= 1 << PB5;
+        PORTB |= 1 << PB7;
 }
  ++counter;
 
@@ -30,9 +30,9 @@ if (counter == 10){
 
 int main(){
 
-    DDRB |= ((1 << PB5) | (1 << PB4));
+    DDRB |= ((1 << PB7) | (1 << PB4));
 
-    PORTB &= ~(1 << PB5);
+    PORTB &= ~(1 << PB7);
 
 
 

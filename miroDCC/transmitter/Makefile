@@ -7,11 +7,13 @@
 # License: GNU GPL v2 (see License.txt), GNU GPL v3 or proprietary (CommercialLicense.txt)
 # This Revision: $Id: Makefile 692 2008-11-07 15:07:40Z cs $
 
-DEVICE  = atmega168
+DEVICE  = atmega1280
+BAUD = 57600 
+PORT = /dev/ttyUSB0
 F_CPU   = 16000000	# in Hz
 FUSE_L  = # see below for fuse values for particular devices
 FUSE_H  = 
-AVRDUDE = sudo avrdude -c arduino  -b 19200 -P /dev/ttyUSB0   -p $(DEVICE) # edit this line for your programmer
+AVRDUDE = sudo avrdude -c arduino  -b $(BAUD) -P /dev/ttyUSB0   -p $(DEVICE) # edit this line for your programmer
 
 CFLAGS  = 
 OBJECTS = main.o
