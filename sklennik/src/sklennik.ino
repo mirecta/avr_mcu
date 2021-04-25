@@ -4,7 +4,7 @@
 //
 
 
-#include <CapacitiveSensor.h>
+//#include <CapacitiveSensor.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
